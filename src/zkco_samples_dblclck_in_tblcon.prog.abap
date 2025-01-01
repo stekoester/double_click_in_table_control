@@ -32,10 +32,10 @@ CALL SCREEN 100.
 *&---------------------------------------------------------------------*
 MODULE tc_init OUTPUT.
   IF gv_do_initialization IS INITIAL.
-    SELECT FROM mara
-           FIELDS matnr, ersda, ernam, laeda, aenam, vpsta, pstat, lvorm
-           INTO TABLE @gt_mara
-           UP TO 100 ROWS.
+    SELECT matnr ersda ernam laeda aenam vpsta pstat lvorm
+      FROM mara
+      INTO TABLE gt_mara
+      UP TO 100 ROWS.
     gv_do_initialization = abap_true.
     REFRESH CONTROL 'TC_MARA' FROM SCREEN '0100'.
   ENDIF.
@@ -75,7 +75,8 @@ MODULE user_command_0100 INPUT.
       GET CURSOR FIELD gv_field LINE gv_line.
       CASE gv_field.
         WHEN 'MARA-MATNR'.
-          gs_mara = VALUE #( gt_mara[ tc_mara-top_line + gv_line - 1 ] OPTIONAL ).
+          READ TABLE gt_mara INTO gs_mara
+               INDEX tc_mara-top_line + gv_line - 1.
           IF gs_mara-matnr IS NOT INITIAL.
             SET PARAMETER ID 'MAT' FIELD gs_mara-matnr.
             CALL TRANSACTION 'MM03' AND SKIP FIRST SCREEN.
